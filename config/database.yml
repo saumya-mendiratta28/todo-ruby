@@ -1,0 +1,38 @@
+
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  pool: 5
+  username: saumya.mendiratta
+  password:
+  host: localhost
+  port: 5432
+
+development:
+  <<: *default
+  database: tododb
+
+
+test:
+  <<: *default
+  database: tododb_test
+
+
+production:
+  primary: &primary_production
+    <<: *default
+    database: todo_ruby_production
+    username: todo_ruby
+    password: <%= ENV["TODO_RUBY_DATABASE_PASSWORD"] %>
+  cache:
+    <<: *primary_production
+    database: todo_ruby_production_cache
+    migrations_paths: db/cache_migrate
+  queue:
+    <<: *primary_production
+    database: todo_ruby_production_queue
+    migrations_paths: db/queue_migrate
+  cable:
+    <<: *primary_production
+    database: todo_ruby_production_cable
+    migrations_paths: db/cable_migrate
