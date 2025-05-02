@@ -23,23 +23,29 @@ class TasksController < ApplicationController
   end
 
   def update
-    task = Task.find_by(id: params[:id])
-    if task.nil?
-      render json: { message: "Task not found" }, status: :not_found
-    elsif task.update(task_params)
+    begin
+      task = Task.find(params[:id])
+      task.update!(task_params)
       render json: task
-    else
-      render json: task.errors, status: :unprocessable_entity
+    rescue ActiveRecord::RecordNotFound
+      render json: { message: "Task not found" }, status: :not_found
+    rescue ActiveRecord::RecordInvalid => e
+      render json: { message: "Validation failed", errors: e.record.errors }, status: :unprocessable_entity
+    rescue => e
+      render json: { message: "Unexpected error", error: e.message }, status: :internal_server_error
     end
   end
 
+
   def destroy
-    task = Task.find_by(id: params[:id])
-    if task
-      task.destroy
+    begin
+      task = Task.find(params[:id])
+      task.destroy!
       head :no_content
-    else
+    rescue ActiveRecord::RecordNotFound
       render json: { message: "Task not found" }, status: :not_found
+    rescue => e
+      render json: { message: "Error deleting task", error: e.message }, status: :internal_server_error
     end
   end
 
